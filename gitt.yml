@@ -45,7 +45,7 @@
                    - name: "Install php"
                      include_tasks: php.yml
 
-                     when: ansible_os_family == "Debian"
+             when: ansible_os_family == "Debian"
 
 
           - block:
@@ -86,7 +86,7 @@
                      yum:
                              name: httpd
                              state: restart
-                     when: ansible_os_family == "Redhat"
+            when: ansible_os_family == "CentOS"
                    
                              
 
