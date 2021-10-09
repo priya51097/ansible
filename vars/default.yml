@@ -1,0 +1,8 @@
+---
+mysql_root_password: "mysql_root_password"
+apache_user: "root"
+http_host: "priya.com"
+http_conf: "priya.com.conf"
+http_port: "80"
+disable_default: true
+~                   
