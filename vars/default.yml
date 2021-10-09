@@ -4,5 +4,4 @@ apache_user: "root"
 http_host: "priya.com"
 http_conf: "priya.com.conf"
 http_port: "80"
-disable_default: true
-~                   
+disable_default: true                  
