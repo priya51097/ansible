@@ -1,0 +1,102 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  vars_files:
+          - vars/default.yml
+
+  tasks:
+    - name: Installing Apache and Maria db and configurations.
+      block:
+        - name: Installing Apache on Debian.
+          apt:
+            name: apache2
+            state: present
+
+        - name: Create Document root
+          file:
+            path: "/var/www/{{  http_host  }}/public_html"
+            state: directory
+            owner: "{{ apache_user }}"
+
+        - name: Set up Virtual host
+          template:
+            src: "/root/apache.conf.j2"
+            dest: "/etc/apache2/sites-available/{{ http_conf }}"
+
+        - name: index file
+          template:
+            src: "/root/file.txt"
+            dest: "/var/www/{{ http_host }}/public_html/index.html"
+
+        - name: Enable new site
+          command: /usr/sbin/a2ensite {{  http_conf  }}
+
+        - name: Disable default site
+          command: /usr/sbin/a2dissite 000-default.conf
+
+        - name: Apache2
+          service:
+            name: apache2
+            state: started
+
+        - name: Php page
+          template:
+            src: "/root/info.php.j2"
+            dest: "/var/www/{{ http_host }}/public_html/info.php"
+
+        - name: "mysql"
+          apt:
+            name: mariadb-server
+            state: latest
+
+        - name: "Install php"
+          include_tasks: php.yml
+      when: ansible_os_family == "Debian"
+
+    - name: Installing HTTPD and Mariadb server and configurations
+      block:
+        - name: "Install httpd"
+          yum:
+            name: httpd
+            state: latest
+
+        - name: "Create Document root"
+          file:
+            path: " /var/www/{{ http_host }}/public_html"
+            state: directory
+
+        - name: index file
+          template:
+            src: "/root/file.txt"
+            dest: "/var/www/{{ http_host }}/public_html/index.html"
+
+        - name: Create sites-available
+          file:
+            path: "/etc/httpd/sites-available"
+
+        - name: Create sites-enables
+          file:
+            path: "/etc/httpd/sites-enabled"
+
+        - name: "Edit apache conf"
+          lineinfile:
+            path: "/etc/httpd/conf/httpd.conf"
+            line: 'IncludeOptional sites-enabled/*.conf'
+
+        - name: "Copy"
+          copy:
+            src: "/root/apache.conf.j2"
+            dest: "/etc/httpd/sites-available/{{ http_conf }}"
+
+        - name: "Create symlink"
+          file:
+            src: "/etc/httpd/sites-available/{{ http_conf }}"
+            dest: "/etc/httpd/sites-enabled/{{ http_conf }}"
+            state: link
+
+        - name: "Restart httpd"
+          yum:
+            name: httpd
+            state: restart
+      when: ansible_os_family == "CentOS"
